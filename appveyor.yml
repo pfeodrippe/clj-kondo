@@ -30,6 +30,9 @@ clone_script:
 
 build_script:
 - cmd: >-
+
+    git rev-parse --abbrev-ref HEAD
+
     powershell -Command "(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein.bat', 'lein.bat')"
 
     call lein self-install
