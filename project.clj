@@ -20,12 +20,14 @@
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
-             :test {:dependencies [[org.clojure/clojurescript "1.10.866"]
+             :test {:dependencies [[spec-provider/spec-provider "0.4.14"]
+                                   [org.clojure/clojurescript "1.10.866"]
                                    [clj-commons/conch "0.9.2"]
+                                   [org.clojure/tools.deps.alpha "0.12.1048"]
+                                   [metosin/malli "0.7.5"]
                                    [jonase/eastwood "1.1.0"]
-                                   [borkdude/missing.test.assertions "0.0.2"]
                                    [babashka/process "0.1.0"]
-                                   [org.clojure/tools.deps.alpha "0.12.1048"]]
+                                   [borkdude/missing.test.assertions "0.0.2"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
