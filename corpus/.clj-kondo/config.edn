@@ -1,0 +1,4 @@
+{:hooks
+ {:analyze-meta {:no-dot hooks.no-dot/no-dot}}
+
+ :linters {:linter/no-dot-string {:level :warning}}}
