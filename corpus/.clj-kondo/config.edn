@@ -1,4 +1,5 @@
 {:hooks
- {:analyze-meta {:no-dot hooks.no-dot/no-dot}}
+ {#_ #_:analyze-meta {:no-dot hooks.no-dot/no-dot}
+  :analyze-call {clojure.core/def hooks.no-dot/def*}}
 
  :linters {:linter/no-dot-string {:level :warning}}}

@@ -5,7 +5,8 @@
 
 ;; This is an example of a hook. It complains
 ;; if the body of a call has a `.`.
-(defn no-dot [{:keys [node]}]
+(defn no-dot
+  [{:keys [node]}]
   (let [children (rest (:children node))]
     (if (and (= (count children) 1)
              (api/string-node? (first children)))
@@ -28,3 +29,12 @@
                                :message "Should be a string"
                                :type :linter/no-dot-string))))
   node)
+
+(defn def*
+  [{:keys [node]}]
+  #_(println (meta (second (:children node))))
+  (prn '(keys node) '-> (keys node))
+  (prn '(keys (meta node)) '-> (keys (meta node)))
+  (prn '(mapv meta (:children node)) '-> (mapv meta (:children node)))
+  (prn '(mapv keys (:children node)) '-> (mapv :meta (:children node)))
+  #_(throw (ex-info (pr-str (meta (second (:children node)))) {})))
