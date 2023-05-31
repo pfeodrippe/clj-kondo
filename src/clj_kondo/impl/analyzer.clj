@@ -1112,6 +1112,8 @@
     (some-> var-name
             (with-meta (meta var-name-node)))))
 
+(declare resolve-keyword)
+
 (defn analyze-def [ctx expr defined-by defined-by->lint-as]
   (let [children (next (:children expr))
         raw-var-name-node (first children)
@@ -1149,7 +1151,34 @@
                                [doc-node docstring]
                                (when (some-> metadata :doc str)
                                  (some docstring/docs-from-meta var-name-node-meta-nodes)))
+        analyze-meta-map (-> (:config ctx)
+                             :hooks
+                             :analyze-meta)
+        meta-hook (and (seq analyze-meta-map)
+                       (->> var-name-node-meta-nodes
+                            (filter hooks-api/keyword-node?)
+                            (mapv #(resolve-keyword ctx (:k %) (:namespaced? %)))
+                            (mapv analyze-meta-map)
+                            (remove nil?)
+                            first))
         ctx (assoc ctx :in-def var-name :def-meta metadata :defmulti? defmulti?)
+        [ctx children] (if (and meta-hook
+                                (not defmulti?)
+                                (= (count children) 1)
+                                (first children))
+                         ;; Wrap actual form with an imagined one so we can
+                         ;; simulate an `:analyze-call` based on the metadata
+                         ;; that's mapped to a hook.
+                         (let [imagined-sym (symbol (-> ctx :ns :name str) (str "__clj-kondo__" (munge meta-hook)))]
+                           [(assoc-in ctx [:config :hooks :analyze-call imagined-sym] meta-hook)
+                            (do (namespace/reg-var! ctx (-> ctx :ns :name)
+                                                    (symbol (name imagined-sym))
+                                                    nil)
+                                (list (with-meta (hooks-api/list-node
+                                                  [(hooks-api/token-node (symbol (name imagined-sym)))
+                                                   (first children)])
+                                        (meta (first children)))))])
+                         [ctx children])
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
@@ -2074,10 +2103,10 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                         [[ns n]
-                          (config/lint-as config
-                                          [resolved-namespace resolved-name])]
-                          [ns n true])
+                            [[ns n]
+                             (config/lint-as config
+                                             [resolved-namespace resolved-name])]
+                            [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
                     ;; Users can get :lint-as like behavior for hooks by configuring
@@ -2093,7 +2122,7 @@
                                 test/testing-hook)
                               nil))))
                     transformed (when hook-fn
-                              ;;;; Expand macro using user-provided function
+;;;; Expand macro using user-provided function
                                   (let [filename (:filename ctx)]
                                     (binding [utils/*ctx* ctx]
                                       (sci/binding [sci/out *out*
